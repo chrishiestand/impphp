@@ -1,0 +1,13 @@
+Developed by Chris Adams, this branch is maintained by Chris Hiestand for
+his own uses. Although I will try to keep this branch compatible with
+other projects, I am not testing this on many platforms so if you use this
+you should test it before production use.
+
+ImpPhp (originally ImpUtils) is a collection of PHP scripts and classes that
+do various useful things. Really handy functions can be found in Utilities.php,
+and a very good database-object model implementation can be found in ImpDB and ImpPDO.
+
+ImpCMS is a simple content management system with basic ACLs.
+
+Please see Chris Adams' github repository for additional information.
+http://github.com/acdha/
