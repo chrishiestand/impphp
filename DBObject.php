@@ -156,6 +156,7 @@
 									$this->$Name = (double)0;
 
 								case 'string':
+								case 'text':
 								case 'enum':
 									$this->$Name = '';
 									break;
@@ -566,16 +567,48 @@
 				return (is_array($a) and !empty($a['formfield']) and ($a['formfield'] === true));
 			}
 
+			private function filterAdminFormFields($a) {
+				return (is_array($a) and !empty($a['adminformfield']) and ($a['adminformfield'] === true));
+			}
+
 			private function filterRequiredFormFields($a) {
 				return (is_array($a) and !empty($a['formfield']) and ($a['formfield'] === true) and !empty($a['required']) and ($a['required'] === true));
 			}
 
+			private function filterRequiredAdminFormFields($a) {
+				return (is_array($a) and !empty($a['adminformfield']) and ($a['adminformfield'] === true) and !empty($a['required']) and ($a['required'] === true));
+			}
+			
+
 			public function getFormFields() {
-				return array_keys(array_filter($this->Properties, array($this, 'filterFormFields')));
+				return array_keys(self::sortProperties(array_filter($this->Properties, array($this, 'filterFormFields'))));
+			}
+			
+			public function getAdminFormFields() {
+				return array_keys(self::sortProperties(array_filter($this->Properties, array($this, 'filterAdminFormFields'))));
 			}
 
 			public function getRequiredFormFields() {
-				return array_keys(array_filter($this->Properties, array($this, 'filterRequiredFormFields')));
+				return array_keys(self::sortProperties(array_filter($this->Properties, array($this, 'filterRequiredFormFields'))));
+			}
+			
+			public function getRequiredAdminFormFields() {
+				return array_keys(self::sortProperties(array_filter($this->Properties, array($this, 'filterRequiredAdminFormFields'))));
+			}
+			
+			public function getAllFormFields() {
+				return array_keys(self::sortProperties(array_merge(array_filter($this->Properties, array($this, 'filterFormFields')), array_filter($this->Properties, array($this, 'filterAdminFormFields')) )));
+			}
+			
+			public static function sortProperties($Properties) {
+			  assert(is_array($Properties));
+			  foreach ($Properties as $k=>$p) {
+			    if (empty($Properties[$k]['sortkey'])) {
+			      $Properties[$k]['sortkey'] = 99;
+			    }
+			  }
+			  uasort($Properties, create_function('$a, $b', 'return ($a[\'sortkey\'] > $b[\'sortkey\']);'));
+			  return $Properties;
 			}
 
 			public function enableChangeTracking($enable = true) {
@@ -726,5 +759,70 @@
 					return cmp($a->ID, $b->ID);
 				}
 			}
-	}
+      
+      public function printFormFields($admin = false) {
+        
+        if (!empty($admin)) {
+          $Fields = $this->getAllFormFields();
+        }
+        else {
+          $Fields = $this->getFormFields();
+        }
+        
+        foreach ($Fields as $f) {
+          
+          if (in_array($f,$this->getRequiredFormFields())) {
+            $keyclass = "RequiredFieldName";
+          }
+          else {
+            $keyclass = "FieldName";
+          }
+          
+          $SubmittedValue = null;
+          if (array_key_exists($f,$_REQUEST)) {
+            $SubmittedValue = $_REQUEST[$f]; 
+          }
+        
+          switch ($this->Properties[$f]['type']){
+            case ('string'):
+            ?>
+              <tr>
+                <td class="FieldNameTitle"><span class="<?=$keyclass?>"><?=NIPS::spaceCamelCase($f)?></span></td>
+                <td class="FieldValue"><input name="<?=$f?>" type="text" size="20" value="<?=html_encode($SubmittedValue)?>"> </td>
+              </tr>
+            <?
+              break;
+              
+            case ('text'):
+            ?>
+              <tr>
+                <td class="FieldNameTitle">
+                  <? 
+                    print "<span class=\"$keyclass\">" . NIPS::spaceCamelCase($f) . '</span>';
+                    if (isset($this->Properties[$f]['description'])) {
+                      print "<br /><br /><span class=\"FieldNameDescription\">" .
+                            html_encode($this->Properties[$f]['description']) . '</span>';
+                    }
+                  ?></td>
+                <td class="FieldValue"><textarea name="<?=$f?>"><?=html_encode($SubmittedValue)?></textarea></td>
+              </tr>
+            <?
+              break;
+              
+            case ('enum'):
+              //assert (isset($this->Properties[$f]['choices']));
+              print "<td class=\"FieldNameTitle\"><span class=\"$keyclass\">$f</span>";
+              if (isset($this->Properties[$f]['description'])) {
+                print "<br /><br /><span class=\"FieldNameDescription\">" .
+                      html_encode($this->Properties[$f]['description']) . '</span>';
+              }
+              print"</td>";
+              print "<td class=\"FieldValue\">" . ImpHTML::generateSelectForEnum(self::$DB, $this->DBTable, $f, $SubmittedValue) . "</td>";
+              break;
+            
+          }
+        }
+        
+      }
+  }
 ?>
