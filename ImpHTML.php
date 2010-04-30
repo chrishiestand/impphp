@@ -388,6 +388,10 @@
 
 			 return implode(' ', $r);
 		 }
+		 
+		 public static function spaceCamelCase($string) {  //MyDescriptionAboutThatThing -> My Description About That Thing
+			 return preg_replace('/(\S)([A-Z])/', "$1 $2", $string);
+		 }
 
 	}
 ?>

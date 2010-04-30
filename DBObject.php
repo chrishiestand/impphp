@@ -781,13 +781,15 @@
           $SubmittedValue = null;
           if (array_key_exists($f,$_REQUEST)) {
             $SubmittedValue = $_REQUEST[$f]; 
+          }elseif (isset($this->$f)) {
+            $SubmittedValue = $this->$f;
           }
         
           switch ($this->Properties[$f]['type']){
             case ('string'):
             ?>
               <tr>
-                <td class="FieldNameTitle"><span class="<?=$keyclass?>"><?=NIPS::spaceCamelCase($f)?></span></td>
+                <td class="FieldName FieldNameTitle"><span class="<?=$keyclass?>"><?=ImpHTML::spaceCamelCase($f)?></span></td>
                 <td class="FieldValue"><input name="<?=$f?>" type="text" size="20" value="<?=html_encode($SubmittedValue)?>"> </td>
               </tr>
             <?
@@ -796,9 +798,9 @@
             case ('text'):
             ?>
               <tr>
-                <td class="FieldNameTitle">
+                <td class="FieldName FieldNameTitle">
                   <? 
-                    print "<span class=\"$keyclass\">" . NIPS::spaceCamelCase($f) . '</span>';
+                    print "<span class=\"$keyclass\">" . ImpHTML::spaceCamelCase($f) . '</span>';
                     if (isset($this->Properties[$f]['description'])) {
                       print "<br /><br /><span class=\"FieldNameDescription\">" .
                             html_encode($this->Properties[$f]['description']) . '</span>';
@@ -811,7 +813,7 @@
               
             case ('enum'):
               //assert (isset($this->Properties[$f]['choices']));
-              print "<td class=\"FieldNameTitle\"><span class=\"$keyclass\">$f</span>";
+              print "<td class=\"FieldName FieldNameTitle\"><span class=\"$keyclass\">$f</span>";
               if (isset($this->Properties[$f]['description'])) {
                 print "<br /><br /><span class=\"FieldNameDescription\">" .
                       html_encode($this->Properties[$f]['description']) . '</span>';
