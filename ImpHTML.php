@@ -223,7 +223,14 @@
 
 			return $values;
 		}
-
+		
+		public static function filterBooleanSelect($value) {
+			if ($value === "") {
+				return null;
+			}
+				return (in_iarray($value, array('yes', 'true')) == true);
+		}
+    
 		public static function generateSelectFromArray(array $the_array, $select_name, $selected_value = false, $use_value_as_key = false) {
 			/*
 			 * returns a string containing an HTML SELECT seeded with the contents of $the_array.
@@ -390,7 +397,7 @@
 		 }
 		 
 		 public static function spaceCamelCase($string) {  //MyDescriptionAboutThatThing -> My Description About That Thing
-			 return preg_replace('/(\S)([A-Z])/', "$1 $2", $string);
+			 return preg_replace('/([\sa-z])([A-Z])/', "$1 $2", $string);
 		 }
 
 	}

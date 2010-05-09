@@ -29,7 +29,8 @@
 			protected $_lazyObjects   = array();
 			public static $_instances = array();
 
-			static $DB;
+			public static $AuthUser;
+			public static $DB;
 
 			public static function &get($id = false) {
 				throw new Exception("Your class must override DBObject::get()!");
@@ -173,7 +174,7 @@
 									break;
 
 								case 'boolean':
-									$this->$Name = false;
+									$this->$Name = null;
 									break;
 
 								default:
@@ -273,7 +274,11 @@
 								break;
 
 							case 'boolean':
-								$this->$name = (bool)$value;
+							  if (is_bool($value) or ($value === null)) {
+							    $this->$name = $value;
+							  } else {
+							    $this->$name = (bool) $value;
+							  }
 								break;
 
 							case 'set':
@@ -499,7 +504,7 @@
 
 						case 'boolean':
 							// Convert from boolean true/false to 1/0 for a BIT column
-							$Q->addValue($P, $this->$P ? 1 : 0);
+							if (is_bool($this->$P)) $Q->addValue($P, $this->$P ? 1 : 0);
 							break;
 
 						case 'set':
@@ -579,6 +584,12 @@
 				return (is_array($a) and !empty($a['adminformfield']) and ($a['adminformfield'] === true) and !empty($a['required']) and ($a['required'] === true));
 			}
 			
+			public function getFormFieldsOfType($type) {
+			  $GLOBALS['_TMPTYPE'] = $type; 
+				$tmp = array_keys(self::sortProperties(array_filter($this->Properties, create_function('$a', 'return ($a[\'type\'] == $GLOBALS[\'_TMPTYPE\']);'))));
+				unset($GLOBALS['_TMPTYPE']);
+				return $tmp;
+			}
 
 			public function getFormFields() {
 				return array_keys(self::sortProperties(array_filter($this->Properties, array($this, 'filterFormFields'))));
@@ -613,6 +624,9 @@
 
 			public function enableChangeTracking($enable = true) {
 				$this->_trackChanges = $enable;
+				if (empty(self::$AuthUser)) {
+				  throw new RuntimeException("Cannot enable change tracking - could not determine who authorized user is.");
+				}
 			}
 
 			private function recordChanges() {
@@ -620,12 +634,12 @@
 				assert(is_array($this->_initialValues));
 				assert(!empty($this->_initialValues));
 				assert(!empty($this->ID)); // We only track changes against stored data
-				assert(!empty($_SERVER['PHP_AUTH_USER']));
+				assert(!empty(self::$AuthUser));
 
 				$Q = new ImpSQLBuilder('ChangeLog');
 				$Q->addValue('TargetTable', $this->DBTable);
 				$Q->addValue('RecordID', $this->ID);
-				$Q->addValue('Admin', $_SERVER['PHP_AUTH_USER']);
+				$Q->addValue('Admin', self::$AuthUser);
 
 				foreach ($this->Properties as $Name => $def) {
 					if (is_array($def) and $def['type'] == 'collection') continue;
@@ -789,8 +803,8 @@
             case ('string'):
             ?>
               <tr>
-                <td class="FieldName FieldNameTitle"><span class="<?=$keyclass?>"><?=ImpHTML::spaceCamelCase($f)?></span></td>
-                <td class="FieldValue"><input name="<?=$f?>" type="text" size="20" value="<?=html_encode($SubmittedValue)?>"> </td>
+                <td class="FieldName FieldNameTitle"><span class="<?=$keyclass?>"><?=html_encode(ImpHTML::spaceCamelCase($f))?></span></td>
+                <td class="FieldValue"><input name="<?=html_encode($f)?>" type="text" size="20" value="<?=html_encode($SubmittedValue)?>"> </td>
               </tr>
             <?
               break;
@@ -802,24 +816,41 @@
                   <? 
                     print "<span class=\"$keyclass\">" . ImpHTML::spaceCamelCase($f) . '</span>';
                     if (isset($this->Properties[$f]['description'])) {
-                      print "<br /><br /><span class=\"FieldNameDescription\">" .
-                            html_encode($this->Properties[$f]['description']) . '</span>';
+                      print "<br /><br /><span class=\"FieldNameDescription\">" . html_encode($this->Properties[$f]['description']) . '</span>';
                     }
                   ?></td>
-                <td class="FieldValue"><textarea name="<?=$f?>"><?=html_encode($SubmittedValue)?></textarea></td>
+                <td class="FieldValue"><textarea name="<?=html_encode($f)?>"><?=html_encode($SubmittedValue)?></textarea></td>
               </tr>
             <?
               break;
               
             case ('enum'):
-              //assert (isset($this->Properties[$f]['choices']));
-              print "<td class=\"FieldName FieldNameTitle\"><span class=\"$keyclass\">$f</span>";
+              print "<tr>\n";
+              print "<td class=\"FieldName FieldNameTitle\"><span class=\"$keyclass\">" . html_encode(ImpHTML::spaceCamelCase($f)) . "</span>";
               if (isset($this->Properties[$f]['description'])) {
                 print "<br /><br /><span class=\"FieldNameDescription\">" .
                       html_encode($this->Properties[$f]['description']) . '</span>';
               }
               print"</td>";
               print "<td class=\"FieldValue\">" . ImpHTML::generateSelectForEnum(self::$DB, $this->DBTable, $f, $SubmittedValue) . "</td>";
+              print "</tr>\n";
+              break;
+              
+            case ('boolean'):
+              print "<tr>\n";
+              print "<td class=\"FieldName FieldNameTitle\"><span class=\"$keyclass\">" . html_encode(ImpHTML::spaceCamelCase($f)) . "</span>";
+              if (isset($this->Properties[$f]['description'])) {
+                print "<br /><br /><span class=\"FieldNameDescription\">" . html_encode($this->Properties[$f]['description']) . '</span>';
+              }
+              print"</td>";
+              if ($SubmittedValue === false) {
+                $SubmittedValue = 'No';
+              }
+              elseif ($SubmittedValue === true) {
+                $SubmittedValue = 'Yes';
+              }
+              print "<td class=\"FieldValue\">" . ImpHTML::generateSelectFromArray(array('Yes', 'No'), $f, $SubmittedValue, true) . "</td>";
+              print "</tr>\n";
               break;
             
           }

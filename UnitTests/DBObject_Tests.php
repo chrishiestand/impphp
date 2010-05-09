@@ -233,13 +233,13 @@
 				if ($p != 'Parent')	$first->$p = 0xdeadbeef;
 			}
 
-			$_SERVER['PHP_AUTH_USER'] = basename(__FILE__); // TODO: Remove this once DBObject change tracking no longer relies on it
+			DBOBject::$AuthUser = basename(__FILE__);
 			$first->save();
 
 			$changes = $first->getChanges();
 			$this->assertType('array', $changes);
 			foreach ($changes as $c) {
-				$this->assertEquals($c['Admin'], $_SERVER['PHP_AUTH_USER']);
+				$this->assertEquals($c['Admin'], DBOBject::$AuthUser);
 				$this->assertTrue(time() - $c['Time'] < 5);
 				$this->assertEquals($c['NewValue'], 0xdeadbeef);
 			}

@@ -503,5 +503,18 @@
 	function array_last($arr) {
 		return end($arr);
 	}
+	
+	function in_iarray($needle, $haystack, $strict = false) {
+		//case-insensitive version of in_array
+		foreach ($haystack as $value) {
+			if ($strict) {
+				if (strtolower($needle) === strtolower($value)) return true;
+			}
+			else {
+				if (strtolower($needle) == strtolower($value)) return true;
+			}
+		}
+		return false;
+	}
 
 ?>
