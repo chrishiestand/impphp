@@ -200,6 +200,12 @@
 		print_r($a);
 		print "\n</pre>\n";
 	}
+	
+	function code_print_r($a) {
+		print "\n<code>\n";
+		print_r($a);
+		print "\n</code>\n";
+	}
 
 	function redirect($URI = false, $Permanent = false) {
 		// Check to see if we've got a real URL or just a relative URL

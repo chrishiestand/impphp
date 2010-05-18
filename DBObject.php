@@ -347,6 +347,10 @@
 				$this->__construct($this->ID);
 			}
 
+			public function __toString() {
+				return $this->getName();
+			}
+
 			private function _loadCollection($p) {
 				if (empty($this->ID)) return null;
 
@@ -611,6 +615,10 @@
 				return array_keys(self::sortProperties(array_merge(array_filter($this->Properties, array($this, 'filterFormFields')), array_filter($this->Properties, array($this, 'filterAdminFormFields')) )));
 			}
 			
+			public function getCollections() {
+				return array_keys(self::sortProperties(array_filter($this->Properties, create_function('$a', 'return ($a[\'type\'] == "collection");'))));
+			}
+			
 			public static function sortProperties($Properties) {
 			  assert(is_array($Properties));
 			  foreach ($Properties as $k=>$p) {
@@ -773,6 +781,16 @@
 					return cmp($a->ID, $b->ID);
 				}
 			}
+			
+      public function getName() { //Utility function for DBObject->printObject, should be overwritten by descendant class when appropriate.
+        foreach (array('Name', 'Title') as $k) {
+          if (isset($this->$k)) {
+            return $this->$k;
+          }
+        }
+        throw new Exception("Could not retrieve human-readable name for class: " . __CLASS__);
+      }
+      
       
       public function printFormFields($admin = false) {
         
@@ -800,11 +818,12 @@
           }
         
           switch ($this->Properties[$f]['type']){
+            
             case ('string'):
             ?>
               <tr>
                 <td class="FieldName FieldNameTitle"><span class="<?=$keyclass?>"><?=html_encode(ImpHTML::spaceCamelCase($f))?></span></td>
-                <td class="FieldValue"><input name="<?=html_encode($f)?>" type="text" size="20" value="<?=html_encode($SubmittedValue)?>"> </td>
+                <td class="FieldValue"><input name="<?=html_encode($f)?>" type="text" size="20" value="<?=html_encode($SubmittedValue)?>"></td>
               </tr>
             <?
               break;
@@ -856,6 +875,104 @@
           }
         }
         
+      }
+      
+      public function printObject($admin = false) {
+        if (!empty($admin)) {
+          $Keys = array_keys(self::sortProperties($this->Properties));
+        }
+        else {
+          $Keys = array_keys(self::sortProperties(array_filter($this->Properties, create_function('$a', 'return empty($a[\'adminformfield\']);'))));
+        }
+        print "<table class=\"DBObject\">\n";
+        
+        foreach ($Keys as $k) {
+          switch ($this->Properties[$k]['type']){
+            case 'currency':
+            case 'enum':
+            case 'integer':
+            case 'double':
+
+              ?>
+              <tr>
+                <td class="FieldName FieldNameTitle"><?=html_encode(ImpHTML::spaceCamelCase($k))?></td>
+                <td class="FieldValue"><?=html_encode((string)$this->$k)?></td>
+              </tr>
+              <?php
+              break;
+
+            case 'text':
+            case 'string':            
+              ?>
+              <tr>
+                <td class="FieldName FieldNameTitle"><?=html_encode(ImpHTML::spaceCamelCase($k))?></td>
+                <td class="FieldValue"><pre><?=html_encode($this->$k)?></pre></td>
+              </tr>
+              <?php
+              break;
+            
+            case 'boolean':
+              if ($this->$k === null) {
+                $boolValue = '';
+              }
+              else {
+                $boolValue = ($this->$k ? 'Yes' : 'No');
+              }
+              ?>
+              <tr>
+                <td class="FieldName FieldNameTitle"><?=html_encode(ImpHTML::spaceCamelCase($k))?></td>
+                <td class="FieldValue"><?=$boolValue?></td>
+              </tr>
+              <?php
+              break;
+            
+            case 'object':
+              if (!empty($this->$k->ID)) {
+              ?>
+              <tr>
+                <td class="FieldName FieldNameTitle"><?=html_encode(ImpHTML::spaceCamelCase($k))?></td>
+                <td class="FieldValue"><?=html_encode($this->$k->getName())?></td>
+              </tr>
+              <?php
+              }
+              break;
+            
+            case 'date':
+              ?>
+              <tr>
+                <td class="FieldName FieldNameTitle"><?=html_encode(ImpHTML::spaceCamelCase($k))?></td>
+                <td class="FieldValue"><?=ImpHTML::format_date($this->$k)?></td>
+              </tr>
+              <?php
+              break;
+            
+            case 'datetime':
+            case 'timestamp':
+              ?>
+              <tr>
+                <td class="FieldName FieldNameTitle"><?=html_encode(ImpHTML::spaceCamelCase($k))?></td>
+                <td class="FieldValue"><?=ImpHTML::format_datetime($this->$k)?></td>
+              </tr>
+              <?php
+              break;
+            
+            
+            case 'collection':
+              ?>
+              <tr>
+              <td class="FieldName FieldNameTitle" rowspan="<?=(count($this->$k) > 0) ? count($this->$k) : 1  ?>"><?=html_encode(ImpHTML::spaceCamelCase($k))?></td>
+              <?php foreach (array_merge($this->$k) as $n=>$obj) { 
+                if ($n > 0) print "<tr>"; ?>
+                  <td class="FieldValue"><?=$obj->getName()?></td>
+
+              <?php if ($n > 0) print "</tr>";
+              }
+              print "</tr>\n";
+            
+              break;
+          }
+        }
+        print "</table>\n";
       }
   }
 ?>
