@@ -7,7 +7,7 @@
 			'Title'                 => array('type' => 'string', 'formfield' => true, 'required' => true),
 			'TextID'                => array('type' => 'string', 'formfield' => true),
 			'Container'             => array('type' => 'string', 'formfield' => true),
-			'Visible'               => 'boolean',
+			'Visible'               => array('type' => 'boolean', 'default' => false),
 			'DisplayVersion'        => array('type' => 'object', 'class' => 'DocumentVersion'),
 			'Created'               => 'datetime',
 			'Modified'              => 'timestamp',

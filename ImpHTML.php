@@ -105,7 +105,7 @@
 			 * If supplied, any ID value (col 1) matching $selected_value will be SELECTED.
 			 */
 
-			$html = "<select name=\"$select_name\"" . ($multiple ? " multiple" : "") . ">\n";
+			$html = '<select name="' . html_encode($select_name) . '"' . ($multiple ? " multiple" : "") . ">\n";
 
 			$query_results = $DB->query($query);
 
@@ -400,22 +400,21 @@
 			 return preg_replace('/([\sa-z])([A-Z])/', "$1 $2", $string);
 		 }
 		 
-     public static function format_date($t) {
-       return ($t == 0) ? 'never' : date('F j, Y', $t);
-     }
+		 public static function format_date($t) {
+			 return ($t == 0) ? 'never' : date('F j, Y', $t);
+		 }
 
-     public static function format_long_date($t) {
-       return ($t == 0) ? 'never' : date('l F j, Y', $t);
-     }
+		 public static function format_long_date($t) {
+			 return ($t == 0) ? 'never' : date('l F j, Y', $t);
+		 }
 
-     public static function format_datetime($t) {
-       return ($t == 0) ? 'never' : date('Y-n-j H:i T', $t);
-     }
+		 public static function format_datetime($t) {
+			 return ($t == 0) ? 'never' : date('Y-n-j H:i T', $t);
+		 }
 
-     public static function format_long_datetime($t) {
-       return ($t == 0) ? 'never' : date('H:i \\o\\n l F j, Y', $t);
-     }
-     
+		 public static function format_long_datetime($t) {
+			 return ($t == 0) ? 'never' : date('H:i \\o\\n l F j, Y', $t);
+		 }
 
 	}
 ?>

@@ -6,7 +6,7 @@
 			'Created'				=> 'datetime',
 			'Modified'			=> 'timestamp',
 			'Deleted'				=> 'datetime',
-			'Approved'			=> 'boolean',
+			'Approved'			=> array( 'type' => 'boolean', 'default' => false),
 			'Comment'				=> 'string',
 			'Body'					=> 'string'
 		);

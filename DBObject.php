@@ -508,7 +508,7 @@
 
 						case 'boolean':
 							// Convert from boolean true/false to 1/0 for a BIT column
-							if (is_bool($this->$P)) $Q->addValue($P, $this->$P ? 1 : 0);
+							$Q->addValue($P, ($this->$P === null) ? null : (int) $this->$P );
 							break;
 
 						case 'set':
@@ -584,10 +584,6 @@
 				return (is_array($a) and !empty($a['formfield']) and ($a['formfield'] === true) and !empty($a['required']) and ($a['required'] === true));
 			}
 
-			private function filterRequiredAdminFormFields($a) {
-				return (is_array($a) and !empty($a['adminformfield']) and ($a['adminformfield'] === true) and !empty($a['required']) and ($a['required'] === true));
-			}
-			
 			public function getFormFieldsOfType($type) {
 			  $GLOBALS['_TMPTYPE'] = $type; 
 				$tmp = array_keys(self::sortProperties(array_filter($this->Properties, create_function('$a', 'return ($a[\'type\'] == $GLOBALS[\'_TMPTYPE\']);'))));
@@ -606,11 +602,7 @@
 			public function getRequiredFormFields() {
 				return array_keys(self::sortProperties(array_filter($this->Properties, array($this, 'filterRequiredFormFields'))));
 			}
-			
-			public function getRequiredAdminFormFields() {
-				return array_keys(self::sortProperties(array_filter($this->Properties, array($this, 'filterRequiredAdminFormFields'))));
-			}
-			
+
 			public function getAllFormFields() {
 				return array_keys(self::sortProperties(array_merge(array_filter($this->Properties, array($this, 'filterFormFields')), array_filter($this->Properties, array($this, 'filterAdminFormFields')) )));
 			}
@@ -810,11 +802,14 @@
             $keyclass = "FieldName";
           }
           
-          $SubmittedValue = null;
           if (array_key_exists($f,$_REQUEST)) {
             $SubmittedValue = $_REQUEST[$f]; 
-          }elseif (isset($this->$f)) {
+          }
+          elseif (isset($this->$f)) {
             $SubmittedValue = $this->$f;
+          }
+          else {
+            $SubmittedValue = null;
           }
         
           switch ($this->Properties[$f]['type']){
@@ -871,7 +866,19 @@
               print "<td class=\"FieldValue\">" . ImpHTML::generateSelectFromArray(array('Yes', 'No'), $f, $SubmittedValue, true) . "</td>";
               print "</tr>\n";
               break;
-            
+              
+            case ('object'):
+              $class = $this->Properties[$f]['class'];
+              $method = 'generate' . $f . 'Select';
+              ?>
+                <tr>
+                  <td class="FieldName FieldNameTitle"><span class="<?=$keyclass?>"><?=html_encode(ImpHTML::spaceCamelCase($f))?></span></td>
+                  <td class="FieldValue"><?=$this->$method($f, $this->$f->ID)?></td>
+                </tr>
+              <?
+              break;
+                          
+              //TODO: add support for collections.            
           }
         }
         
