@@ -868,8 +868,8 @@
               break;
               
             case ('object'):
-              $class = $this->Properties[$f]['class'];
               $method = 'generate' . $f . 'Select';
+              assert(method_exists($this, $method));
               ?>
                 <tr>
                   <td class="FieldName FieldNameTitle"><span class="<?=$keyclass?>"><?=html_encode(ImpHTML::spaceCamelCase($f))?></span></td>
