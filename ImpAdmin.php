@@ -158,5 +158,10 @@
 				unset($this->Rights[$UserID]); // Clear out the cache for this user to avoid any discrepancies
 			}
 		}
+		
+		public function getAdminIDs() {
+		  global $DB;
+		  return $DB->queryValues("SELECT UserID FROM AdminAreaRights WHERE Rights !=''");
+		}
 	}
 ?>
