@@ -415,6 +415,44 @@
 		 public static function format_long_datetime($t) {
 			 return ($t == 0) ? 'never' : date('H:i \\o\\n l F j, Y', $t);
 		 }
+		 
+		 //This can be used with verifyCSRFPrevention() to prevent CSRF attacks
+		 public static function insertCSRFPrevention() {
+			 if (session_id() == '') {
+				 session_start();
+			 }
+			 if (defined('IMP_NOCSRF_SALT')) {
+				 $secret = hash('sha256', rand() . IMP_NOCSRF_SALT);
+			 }
+			 else {
+				 $secret = hash('sha256', rand());
+			 }
+			 
+			 $_SESSION['_IMP_NOCSRF_SECRET'] = $secret;
+			 self::generateHiddenInputs(array('no-csrf' => $secret));
+		 }
+		 
+		 //The return value of this function should be checked at the beginning of POST processing
+		 public static function verifyCSRFPrevention() { 
+			 if (empty($_POST['no-csrf'])) {
+				 trigger_error("Could not verify CSRF secret, no post variable set", E_USER_NOTICE);
+				 return false;
+			 }
+			 if (session_id() == '') {
+				 session_start();
+			 }
+			 if (empty($_SESSION['_IMP_NOCSRF_SECRET'])) {
+				 trigger_error("Could not verify CSRF secret, no session variable set", E_USER_NOTICE);
+				 return false;
+			 }
+			 $input = $_POST['no-csrf'];
+			 if ($_POST['no-csrf'] === $_SESSION['_IMP_NOCSRF_SECRET']) {
+				 unset($_SESSION['_IMP_NOCSRF_SECRET']);
+				 return true;
+			 }
+			 trigger_error('Possible CSRF attack. Could not validate CSRF secret from ' . $_SERVER['REMOTE_ADDR'], E_USER_NOTICE);
+			 return false;
+		 }
 
 	}
 ?>
