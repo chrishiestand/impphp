@@ -445,7 +445,6 @@
 				 trigger_error("Could not verify CSRF secret, no session variable set", E_USER_NOTICE);
 				 return false;
 			 }
-			 $input = $_POST['no-csrf'];
 			 if ($_POST['no-csrf'] === $_SESSION['_IMP_NOCSRF_SECRET']) {
 				 unset($_SESSION['_IMP_NOCSRF_SECRET']);
 				 return true;
