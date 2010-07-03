@@ -350,6 +350,10 @@
 
 		return $files;
 	}
+  
+  function gmt_datetime($timestamp) {
+    return gmdate( 'D, d M Y H:i:s \G\M\T', $timestamp);
+  }
 
 	function http_expire_now() {
 		/*
@@ -358,7 +362,7 @@
 		 */
 		assert(!headers_sent());
 		header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");									// Date in the past
-		header("Last-Modified: " . gmdate('r'));													// always modified
+		header("Last-Modified: " . gmt_datetime(time()));													// always modified
 		header("Cache-Control: no-cache, must-revalidate");								// HTTP/1.1
 		header("Pragma: no-cache");																				// HTTP/1.0
 	}
@@ -385,12 +389,12 @@
 
 		if ($use_cache) {
 			header('HTTP/1.1 304 Not changed');
-			header('Last-Modified: ' . gmdate("r", $current_mtime));
+			header('Last-Modified: ' . gmt_datetime($current_mtime));
 			exit;
 		} else {
 			header("ETag: $current_etag");
-			header('Last-Modified: ' . gmdate("r", $current_mtime));
-			header('Expires: ' . gmdate('r', time() + $max_age));
+			header('Last-Modified: ' . gmt_datetime($current_mtime));
+			header('Expires: ' . gmt_datetime(time()+ $max_age));
 			header("Cache-Control: max-age=$max_age");
 		}
 	}
