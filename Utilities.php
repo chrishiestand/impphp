@@ -379,8 +379,7 @@
 		if (!empty($headers["if-none-match"]) and ($headers["if-none-match"] == $current_etag)) {
 			$use_cache = true;
 		}
-
-		if (!empty($headers['if-modified-since'])) {
+    elseif (!empty($headers['if-modified-since'])) {
 			$ims = strtotime($headers['if-modified-since']);
 			if ($ims > 0 and $ims >= $current_mtime) {
 				$use_cache = true;
