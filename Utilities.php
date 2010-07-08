@@ -381,15 +381,17 @@
 
 		$headers = array_change_key_case(getallheaders(), CASE_LOWER);
 
-		if (!empty($headers["if-none-match"]) and ($headers["if-none-match"] == $current_etag)) {
-			$use_cache = true;
-		}
+    if (!empty($headers["if-none-match"])) {
+      if ($headers["if-none-match"] == $current_etag) {
+        $use_cache = true;
+      }
+    }
     elseif (!empty($headers['if-modified-since'])) {
-			$ims = strtotime($headers['if-modified-since']);
-			if ($ims > 0 and $ims >= $current_mtime) {
-				$use_cache = true;
-			}
-		}
+      $ims = strtotime($headers['if-modified-since']);
+      if ($ims > 0 and $ims >= $current_mtime) {
+        $use_cache = true;
+      }
+    }
 
 		if ($use_cache) {
 			header('HTTP/1.1 304 Not changed');
