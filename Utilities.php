@@ -367,26 +367,31 @@
 		header("Pragma: no-cache");																				// HTTP/1.0
 	}
 
-	function check_client_cache($current_etag, $current_mtime, $max_age = 3600) {
+  function check_client_cache($current_etag, $current_mtime, $max_age = 3600) { //todo: consider supporting multiple etags
 		assert(!headers_sent());
 		assert(!empty($current_etag));
 		assert($max_age > 0);
+    
+    $current_etag = trim($current_etag, '"');
+    $headers = array_change_key_case(getallheaders(), CASE_LOWER);
 
-    //If the etag is not quoted, quote it to match HTTP/1.1 spec
-    if ( (strpos($current_etag, '"') !=0) or (strrpos($current_etag, '"') != strlen($current_etag) -1)) {
-      $current_etag = '"' . $current_etag . '"';
+    //We should use a different etag for each compression type - currently supporting zlib and uncompressed
+    $use_zlib = ini_get('zlib.output_compression');
+    if (!empty($use_zlib) and !empty($headers['accept-encoding']) and strpos($headers['accept-encoding'], 'gzip') !== false) {
+      $current_etag = 'GZ:' . $current_etag;
     }
 
+    //etags must be quoted strings to match HTTP/1.1 spec
+    $current_etag = '"' . $current_etag . '"';
+    
 		$use_cache = false;
 
-		$headers = array_change_key_case(getallheaders(), CASE_LOWER);
-
-    if (!empty($headers["if-none-match"])) {
+    if (array_key_exists('if-none-match', $headers)) {
       if ($headers["if-none-match"] == $current_etag) {
         $use_cache = true;
       }
     }
-    elseif (!empty($headers['if-modified-since'])) {
+    elseif (array_key_exists('if-modified-since', $headers)) {  //Do not use cache if 'if-none-match' is set but does not match etag (HTTP/1.1)
       $ims = strtotime($headers['if-modified-since']);
       if ($ims > 0 and $ims >= $current_mtime) {
         $use_cache = true;
@@ -395,6 +400,7 @@
 
 		if ($use_cache) {
 			header('HTTP/1.1 304 Not changed');
+			header("ETag: $current_etag");  //Return the matching etag
 			header('Last-Modified: ' . gmt_datetime($current_mtime));
 			exit;
 		} else {
