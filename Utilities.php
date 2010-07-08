@@ -372,6 +372,11 @@
 		assert(!empty($current_etag));
 		assert($max_age > 0);
 
+    //If the etag is not quoted, quote it to match HTTP/1.1 spec
+    if ( (strpos($current_etag, '"') !=0) or (strrpos($current_etag, '"') != strlen($current_etag) -1)) {
+      $current_etag = '"' . $current_etag . '"';
+    }
+
 		$use_cache = false;
 
 		$headers = array_change_key_case(getallheaders(), CASE_LOWER);
