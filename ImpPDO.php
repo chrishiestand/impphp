@@ -170,13 +170,19 @@
 			$this->startTimer();
 
 			if (empty($args)) {
-				$ret = call_user_func_array(array($this->PDO, 'query'), array($sql))->fetchAll(PDO::FETCH_ASSOC);
+				$st = call_user_func_array(array($this->PDO, 'query'), array($sql));
+				if (!$st) {
+				  throw new InvalidArgumentException("Unable to prepare '$sql': " . kimplode($this->PDO->errorInfo()));
+				}
+				$ret = $st->fetchAll(PDO::FETCH_ASSOC);
 			} else {
 				$st = $this->PDO->prepare($sql);
 				if (!$st) {
-					throw new Exception("Unable to prepare '$sql': " . kimplode($this->PDO->errorInfo()));
+					throw new InvalidArgumentException("Unable to prepare '$sql': " . kimplode($this->PDO->errorInfo()));
 				}
-				$st->execute($args);
+				if ( !$st->execute($args) ) {
+				  throw new InvalidArgumentException("Unable to execute '$sql': " . kimplode($this->PDO->errorInfo()));
+				}
 				$ret = $st->fetchAll(PDO::FETCH_ASSOC);
 			}
 
