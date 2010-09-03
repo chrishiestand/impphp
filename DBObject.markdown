@@ -37,7 +37,7 @@ Notes
   automatically supplied.
 * Properties is an array. The key is the property name; the value is either a
   string (shorthand for the property's type) or an array:
-	* `type`: property type (integer, string, boolean, timestamp, datetime/date, set, enum or object)
+	* `type`: property type (integer, double, currency, string, boolean, timestamp, datetime/date, set, enum, object, or collection)
 	* `class`: valid PHP class name (optional, defaults to the property name)
 	* `formfield`: boolean indicating whether this property corresponds directly to a form field
 	* `required`: boolean indicating whether this is a required form field
