@@ -817,7 +817,7 @@
           print "<tr>\n";
           print "<td class=\"FieldName FieldNameTitle $keyclass\">" . ImpHTML::spaceCamelCase($f) . "</td>\n";
 
-          print "<td class=\"FieldValue {$this->Properties[$f]['type']}\">";
+          print '<td class="FieldValue ' . html_encode($this->Properties[$f]['type']) . '">';
           if (isset($this->Properties[$f]['description'])) {
             print "<span class=\"FieldNameDescription\">" . html_encode($this->Properties[$f]['description']) . '</span><br />';
           }
