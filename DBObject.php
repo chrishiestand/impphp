@@ -571,6 +571,10 @@
 					$this->$n = $v;
 				}
 			}
+			
+			private function filterRequired($a) {
+				return (is_array($a) and !empty($a['required']) and ($a['required'] === true));
+			}
 
 			private function filterFormFields($a) {
 				return (is_array($a) and !empty($a['formfield']) and ($a['formfield'] === true));
@@ -583,43 +587,40 @@
 			private function filterRequiredFormFields($a) {
 				return (is_array($a) and !empty($a['formfield']) and ($a['formfield'] === true) and !empty($a['required']) and ($a['required'] === true));
 			}
+			
+			private function filterRequiredAdminFormFields($a) {
+			  return $this->filterAdminFormFields($a) and $this->filterRequired($a);
+			}
 
 			public function getFormFieldsOfType($type) {
 			  $GLOBALS['_TMPTYPE'] = $type; 
-				$tmp = array_keys(self::sortProperties(array_filter($this->Properties, create_function('$a', 'return ($a[\'type\'] == $GLOBALS[\'_TMPTYPE\']);'))));
+				$tmp = array_keys(array_filter($this->Properties, create_function('$a', 'return ($a[\'type\'] == $GLOBALS[\'_TMPTYPE\']);')));
 				unset($GLOBALS['_TMPTYPE']);
 				return $tmp;
 			}
 
 			public function getFormFields() {
-				return array_keys(self::sortProperties(array_filter($this->Properties, array($this, 'filterFormFields'))));
+				return array_keys(array_filter($this->Properties, array($this, 'filterFormFields')));
 			}
 			
 			public function getAdminFormFields() {
-				return array_keys(self::sortProperties(array_filter($this->Properties, array($this, 'filterAdminFormFields'))));
+				return array_keys(array_filter($this->Properties, array($this, 'filterAdminFormFields')));
 			}
 
 			public function getRequiredFormFields() {
-				return array_keys(self::sortProperties(array_filter($this->Properties, array($this, 'filterRequiredFormFields'))));
+				return array_keys(array_filter($this->Properties, array($this, 'filterRequiredFormFields')));
+			}
+			
+			public function getRequiredAdminFormFields() {
+				return array_keys(array_filter($this->Properties, array($this, 'filterRequiredAdminFormFields')));
 			}
 
 			public function getAllFormFields() {
-				return array_keys(self::sortProperties(array_merge(array_filter($this->Properties, array($this, 'filterFormFields')), array_filter($this->Properties, array($this, 'filterAdminFormFields')) )));
+				return array_keys(array_merge(array_filter($this->Properties, array($this, 'filterFormFields')), array_filter($this->Properties, array($this, 'filterAdminFormFields')) ));
 			}
 			
 			public function getCollections() {
-				return array_keys(self::sortProperties(array_filter($this->Properties, create_function('$a', 'return ($a[\'type\'] == "collection");'))));
-			}
-			
-			public static function sortProperties($Properties) {
-			  assert(is_array($Properties));
-			  foreach ($Properties as $k=>$p) {
-			    if (empty($Properties[$k]['sortkey'])) {
-			      $Properties[$k]['sortkey'] = 99;
-			    }
-			  }
-			  uasort($Properties, create_function('$a, $b', 'return ($a[\'sortkey\'] > $b[\'sortkey\']);'));
-			  return $Properties;
+				return array_keys(array_filter($this->Properties, create_function('$a', 'return ($a[\'type\'] == "collection");')));
 			}
 
 			public function enableChangeTracking($enable = true) {
@@ -783,24 +784,25 @@
         throw new Exception("Could not retrieve human-readable name for class: " . __CLASS__);
       }
       
-      
-      public function printFormFields($admin = false) {
+      public function printFormFields($admin = false, $caption = false) {
         
         if (!empty($admin)) {
           $Fields = $this->getAllFormFields();
+          $RequiredFields = $this->getRequiredAdminFormFields();
         }
         else {
           $Fields = $this->getFormFields();
+          $RequiredFields = $this->getRequiredformFields();
+        }
+        
+        print "<table class=\"DBObjectFormFields\">"; //Assumes being called within a form
+        if (!empty($caption)) {
+          print '<caption>' . html_encode($caption) . '</caption>';
         }
         
         foreach ($Fields as $f) {
           
-          if (in_array($f,$this->getRequiredFormFields())) {
-            $keyclass = "RequiredFieldName";
-          }
-          else {
-            $keyclass = "FieldName";
-          }
+          $keyclass = in_array($f, $RequiredFields) ? 'RequiredFieldName' : 'FieldName';
           
           if (array_key_exists($f,$_REQUEST)) {
             $SubmittedValue = $_REQUEST[$f]; 
@@ -811,85 +813,67 @@
           else {
             $SubmittedValue = null;
           }
+          
+          print "<tr>\n";
+          print "<td class=\"FieldName FieldNameTitle $keyclass\">" . ImpHTML::spaceCamelCase($f) . "</td>\n";
+
+          print "<td class=\"FieldValue {$this->Properties[$f]['type']}\">";
+          if (isset($this->Properties[$f]['description'])) {
+            print "<span class=\"FieldNameDescription\">" . html_encode($this->Properties[$f]['description']) . '</span><br />';
+          }
         
           switch ($this->Properties[$f]['type']){
             
             case ('string'):
-            ?>
-              <tr>
-                <td class="FieldName FieldNameTitle"><span class="<?=$keyclass?>"><?=html_encode(ImpHTML::spaceCamelCase($f))?></span></td>
-                <td class="FieldValue"><input name="<?=html_encode($f)?>" type="text" size="20" value="<?=html_encode($SubmittedValue)?>"></td>
-              </tr>
-            <?
+              print '<input name="' . html_encode($f) . '" type="text" size="20" value="' . html_encode($SubmittedValue) . '">';
               break;
               
+            case ('currency'):
+              print '<input name="' . html_encode($f) . '" type="text" size="20" value="' . number_format((float)$SubmittedValue, 2) . '">';
+              break;
+              
+            case ('integer'):
+              print '<input name="' . html_encode($f) . '" type="text" size="20" value="' . (int)$SubmittedValue . '">';
+              break;
+            
             case ('text'):
-            ?>
-              <tr>
-                <td class="FieldName FieldNameTitle">
-                  <? 
-                    print "<span class=\"$keyclass\">" . ImpHTML::spaceCamelCase($f) . '</span>';
-                    if (isset($this->Properties[$f]['description'])) {
-                      print "<br /><br /><span class=\"FieldNameDescription\">" . html_encode($this->Properties[$f]['description']) . '</span>';
-                    }
-                  ?></td>
-                <td class="FieldValue"><textarea name="<?=html_encode($f)?>"><?=html_encode($SubmittedValue)?></textarea></td>
-              </tr>
-            <?
+              print '<textarea name="' . html_encode($f) . '">' . html_encode($SubmittedValue) . '</textarea>';
               break;
               
             case ('enum'):
-              print "<tr>\n";
-              print "<td class=\"FieldName FieldNameTitle\"><span class=\"$keyclass\">" . html_encode(ImpHTML::spaceCamelCase($f)) . "</span>";
-              if (isset($this->Properties[$f]['description'])) {
-                print "<br /><br /><span class=\"FieldNameDescription\">" .
-                      html_encode($this->Properties[$f]['description']) . '</span>';
-              }
-              print"</td>";
-              print "<td class=\"FieldValue\">" . ImpHTML::generateSelectForEnum(self::$DB, $this->DBTable, $f, $SubmittedValue) . "</td>";
-              print "</tr>\n";
+              print ImpHTML::generateSelectForEnum(self::$DB, $this->DBTable, $f, $SubmittedValue);
               break;
               
             case ('boolean'):
-              print "<tr>\n";
-              print "<td class=\"FieldName FieldNameTitle\"><span class=\"$keyclass\">" . html_encode(ImpHTML::spaceCamelCase($f)) . "</span>";
-              if (isset($this->Properties[$f]['description'])) {
-                print "<br /><br /><span class=\"FieldNameDescription\">" . html_encode($this->Properties[$f]['description']) . '</span>';
-              }
-              print"</td>";
               if ($SubmittedValue === false) {
                 $SubmittedValue = 'No';
               }
               elseif ($SubmittedValue === true) {
                 $SubmittedValue = 'Yes';
               }
-              print "<td class=\"FieldValue\">" . ImpHTML::generateSelectFromArray(array('Yes', 'No'), $f, $SubmittedValue, true) . "</td>";
-              print "</tr>\n";
+              print ImpHTML::generateSelectFromArray(array('Yes', 'No'), $f, $SubmittedValue, true);
               break;
               
             case ('object'):
               $method = 'generate' . $f . 'Select';
               assert(method_exists($this, $method));
-              ?>
-                <tr>
-                  <td class="FieldName FieldNameTitle"><span class="<?=$keyclass?>"><?=html_encode(ImpHTML::spaceCamelCase($f))?></span></td>
-                  <td class="FieldValue"><?=$this->$method($f, $this->$f->ID)?></td>
-                </tr>
-              <?
+              print $this->$method($f, $this->$f->ID);
               break;
                           
               //TODO: add support for collections.            
           }
+          print "</td></tr>\n";
         }
         
+        print "</table>\n";
       }
       
       public function printObject($admin = false) {
         if (!empty($admin)) {
-          $Keys = array_keys(self::sortProperties($this->Properties));
+          $Keys = array_keys($this->Properties);
         }
         else {
-          $Keys = array_keys(self::sortProperties(array_filter($this->Properties, create_function('$a', 'return empty($a[\'adminformfield\']);'))));
+          $Keys = array_keys(array_filter($this->Properties, create_function('$a', 'return empty($a[\'adminformfield\']);')));
         }
         print "<table class=\"DBObject\">\n";
         
