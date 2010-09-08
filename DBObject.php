@@ -593,10 +593,7 @@
 			}
 
 			public function getFormFieldsOfType($type) {
-			  $GLOBALS['_TMPTYPE'] = $type; 
-				$tmp = array_keys(array_filter($this->Properties, create_function('$a', 'return ($a[\'type\'] == $GLOBALS[\'_TMPTYPE\']);')));
-				unset($GLOBALS['_TMPTYPE']);
-				return $tmp;
+				return array_keys(array_filter($this->Properties, create_function('$a', 'return ($a[\'type\'] == \'' . $type . '\');')));
 			}
 
 			public function getFormFields() {
