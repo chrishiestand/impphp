@@ -578,7 +578,7 @@
 
 			private function filterAdminRequired($a) {
 			  if (!is_array($a)) return false;
-			  if (empty($a['adminrequired'])) return (!empty($a['required']) and ($a['required'] === true));
+			  if (!isset($a['adminrequired'])) return (!empty($a['required']) and ($a['required'] === true));
 			  return $a['adminrequired'] === true;
 			}
 
@@ -587,7 +587,9 @@
 			}
 
 			private function filterAdminFormFields($a) {
-				return (is_array($a) and !empty($a['adminformfield']) and ($a['adminformfield'] === true));
+			  if (!is_array($a)) return false;
+			  if (!isset($a['adminformfield'])) return (!empty($a['formfield']) and ($a['formfield'] === true));
+			  return $a['adminformfield'] === true;
 			}
 
 			private function filterRequiredFormFields($a) {
