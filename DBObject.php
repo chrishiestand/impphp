@@ -576,6 +576,12 @@
 				return (is_array($a) and !empty($a['required']) and ($a['required'] === true));
 			}
 
+			private function filterAdminRequired($a) {
+			  if (!is_array($a)) return false;
+			  if (empty($a['adminrequired'])) return (!empty($a['required']) and ($a['required'] === true));
+			  return $a['adminrequired'] === true;
+			}
+
 			private function filterFormFields($a) {
 				return (is_array($a) and !empty($a['formfield']) and ($a['formfield'] === true));
 			}
@@ -589,7 +595,7 @@
 			}
 			
 			private function filterRequiredAdminFormFields($a) {
-			  return $this->filterAdminFormFields($a) and $this->filterRequired($a);
+			  return $this->filterAdminFormFields($a) and $this->filterAdminRequired($a);
 			}
 
 			public function getFormFieldsOfType($type) {
