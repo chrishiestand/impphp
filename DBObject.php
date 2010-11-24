@@ -492,6 +492,7 @@
 							if (empty($this->ID)) continue 2;
 
 							assert(is_array($PropDef));
+							if (empty($PropDef['autoupdate'])) continue 2;  //autoupdate property required to enable this experimental feature
 							extract($PropDef);
 
 							if (empty($class)) {
