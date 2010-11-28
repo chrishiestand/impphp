@@ -506,7 +506,6 @@
 							self::$DB->execute("DELETE FROM $table WHERE $our_column=$this->ID");
 							
 							if (empty($this->$P))	continue 2;
-							echo "INSERT INTO $table ($our_column, $member_column) VALUES (" . implode('),(', array_map(create_function('$a', 'return "'. $this->ID. ',$a->ID";'),$this->$P)) . ")";
 							self::$DB->execute("INSERT INTO $table ($our_column, $member_column) VALUES (" . implode('),(', array_map(create_function('$a', 'return "'. $this->ID. ',$a->ID";'),$this->$P)) . ")");
 							
 							break;
