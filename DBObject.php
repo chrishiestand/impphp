@@ -236,6 +236,14 @@
 						}
 
 						switch ($PropertyType) {
+							case 'collection':
+								if (!empty($value) and is_array($value)) {
+								$this->$name = $value;
+								}
+								else {
+									$this->$name = array();
+								}
+								break;
 							case 'object':
 								if (empty($value)) {
 									$this->$name = null;
@@ -481,6 +489,26 @@
 
 					switch ($Type) {
 						case 'collection':
+							if (empty($this->ID)) continue 2;
+
+							assert(is_array($PropDef));
+							if (empty($PropDef['autoupdate'])) continue 2;  //autoupdate property required to enable this experimental feature
+							extract($PropDef);
+
+							if (empty($class)) {
+								throw new Exception("Property definition for $P needs to specify a class name");
+							}
+
+							if (empty($table))					$table				 = $P;
+							if (empty($our_column))			$our_column		 = get_class($this);
+							if (empty($member_column))	$member_column = 'ID';
+							
+							self::$DB->execute("DELETE FROM $table WHERE $our_column=$this->ID");
+							
+							if (empty($this->$P))	continue 2;
+							echo "INSERT INTO $table ($our_column, $member_column) VALUES (" . implode('),(', array_map(create_function('$a', 'return "'. $this->ID. ',$a->ID";'),$this->$P)) . ")";
+							self::$DB->execute("INSERT INTO $table ($our_column, $member_column) VALUES (" . implode('),(', array_map(create_function('$a', 'return "'. $this->ID. ',$a->ID";'),$this->$P)) . ")");
+							
 							break;
 
 						case 'timestamp':
@@ -860,12 +888,15 @@
               break;
               
             case ('object'):
-              $method = 'generate' . $f . 'Select';
-              assert(method_exists($this, $method));
-              print $this->$method($f, $this->$f->ID);
+            case ('collection'):
+              $method = 'generate' . $f . 'FormField';
+              if (!method_exists($this, $method)) {
+                trigger_error(get_class($this) . "::$method() has not been created. You should create this method.", E_USER_NOTICE);
+                break;
+              }
+              print $this->$method($this->$f, $f);
               break;
-                          
-              //TODO: add support for collections.            
+              
           }
           print "</td></tr>\n";
         }
@@ -879,7 +910,7 @@
         }
         else {
           $Keys = array_keys(array_filter($this->Properties, create_function('$a', 'return empty($a[\'adminformfield\']);')));
-        }
+        } 
         print "<table class=\"DBObject\">\n";
         
         foreach ($Keys as $k) {
