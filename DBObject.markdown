@@ -95,3 +95,7 @@ Collections
 		is equivalent to:
 
 			return Product::get($DB->queryValues('SELECT Product FROM OrderProducts WHERE Order = ?', $this->ID));
+
+* Reading: Because of the potential for high-load, collections are loaded on-demand instead of on object-load.
+		Because of the way PHP magic methods work, it is usually better to use count() than !empty() to determine if a
+		DBObject's collection has members.
