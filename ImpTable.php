@@ -29,6 +29,7 @@
 		public $JSRendererName			= 'ImpTable_Renderer';
 		public $yuiDataTableOptions = array();
 		public static $yuiRoot      = 'http://yui.yahooapis.com';
+		public static $yuiVersion   = '2.8.2r1';
 		private $_dataType          = 'internal';
 		private $_dataSource;
 		private $_dataSourceOptions;
@@ -252,7 +253,7 @@
 			?>
 				<script type="text/javascript" charset="utf-8">//<![CDATA[
 					if (!window.YAHOO || !YAHOO.util || !YAHOO.util.YUILoader) {
-						document.write(unescape('%3Cscript%20type%3D%22text%2Fjavascript%22%20src%3D%22<?=urlencode(self::$yuiRoot)?>%2F2.5.1%2Fbuild%2Fyuiloader%2Fyuiloader-beta-min.js%22%3E%3C%2Fscript%3E'));
+						document.write(unescape('%3Cscript%20type%3D%22text%2Fjavascript%22%20src%3D%22<?=urlencode(self::$yuiRoot)?>%2F<?=urlencode(self::$yuiVersion)?>%2Fbuild%2Fyuiloader%2Fyuiloader-min.js%22%3E%3C%2Fscript%3E'));
 					}
 				//]]>
 				</script>
@@ -265,7 +266,7 @@
 						ImpTable_Loader = new YAHOO.util.YUILoader({
 							require: ['datatable', 'datasource'],
 							loadOptional:true,
-							base: '<?=self::$yuiRoot?>/2.5.1/build/',
+							base: '<?=self::$yuiRoot?>/<?=self::$yuiVersion?>/build/',
 							onSuccess:<?=$this->JSRendererName?>
 						});
 						ImpTable_Loader.insert();
