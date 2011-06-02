@@ -129,17 +129,26 @@
 		function quote($v) {
 			return is_array($v) ? array_map(array($this->PDO, 'quote'), $v) : $this->PDO->quote($v);
 		}
+    
+    public function quoteTrim($v) {     //Workaround for when string legitimately begins or ends with an apostrophe; trim($v, "'") had been used previously
+      $str = $this->PDO->quote($v);     //Proper solution is using prepared SQL statements wherever possible
 
-		function escape($v) {
-			 if (is_array($v)) {
-					foreach ($v as $k => $i) {
-						$v[$k] = trim($this->PDO->quote($v), "'");
-					}
-					return $v;
-			 } else {
-				 return trim($this->PDO->quote($v), "'");;
-			 }
-		}
+      if (strpos($str,"'")===0 and strrpos($str,"'")===strlen($str)-1) {
+        $str = substr($str, 1, strlen($str)-2 );
+      }
+      return $str;
+    }
+
+    function escape($v) {
+       if (is_array($v)) {
+          foreach ($v as $k => $i) {
+            $v[$k] = $this->quoteTrim($v);
+          }
+          return $v;
+       } else {
+          return $this->quoteTrim($v);
+       }
+    }
 
 		function execute($sql) {
 			$args = func_get_args();
