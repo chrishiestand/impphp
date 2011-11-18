@@ -14,6 +14,7 @@
 		protected $Password;
 		protected $Options;
 		protected $PDO;
+		protected $Locks = array();
 
 		function __construct($DSN, $Username = false, $Password = false, array $Options = array()) {
 			$this->PDO          = new PDO($DSN, $Username, $Password, $Options);
@@ -33,6 +34,12 @@
 				// TODO: Find other MySQL-specific functions which could easily be mimiced for SQLite
 				$this->PDO->sqliteCreateFunction('FROM_UNIXTIME', create_function('$t', 'return date("Y-m-d H:i:s", $t);'));
 				$this->PDO->sqliteCreateFunction('UNIX_TIMESTAMP', create_function('$t', 'return strtotime($t);'));
+			}
+		}
+		
+		function __destruct() {
+			foreach ($this->Locks as $lock) {
+				$this->releaseNamedLock($lock);
 			}
 		}
 
@@ -201,6 +208,38 @@
 
 		function getLastInsertId() {
 			return $this->lastInsertId();
+		}
+		
+		function getNamedLock($name, $timeout) {
+			if (in_array($name, $this->Locks)) {
+				throw new RuntimeException("Database lock $name must be released first");
+			}
+			switch ($this->getAttribute(PDO::ATTR_DRIVER_NAME)) {
+				case 'mysql':
+					if ($this->queryValue("SELECT GET_LOCK('$name', $timeout)") != 1) {
+						throw new RuntimeException("Could not obtain named lock $name within $timeout seconds");
+					}
+					break;
+				
+				default:
+					throw new Exception('Cannot set named lock for unsupported ' . $this->getAttribute(PDO::ATTR_DRIVER_NAME) . ' database (DSN=' . $this->DSN . ')');
+			}
+			$this->Locks[] = $name;
+		}
+		
+		function releaseNamedLock($name) {
+			if (($Key = array_search($name, $this->Locks)) === false) {
+				throw new RuntimeException("You must get the database lock $name first using getNamedLock()");
+			}
+			switch ($this->getAttribute(PDO::ATTR_DRIVER_NAME)) {
+				case 'mysql':
+					$this->execute("DO RELEASE_LOCK('$name')");
+					break;
+
+				default:
+					throw new Exception('Cannot set named lock for unsupported ' . $this->getAttribute(PDO::ATTR_DRIVER_NAME) . ' database (DSN=' . $this->DSN . ')');
+			}
+			unset($this->Locks[$Key]);
 		}
 
 		// function queryValue($sql) {
