@@ -202,11 +202,16 @@
 			return $html;
 		}
 
-		public static function generateCheckboxesForArray($name, $Options, array $selected_values = array()) {
+		public static function generateCheckboxesForArray($name, $Options, array $selected_values = array(), $pre_sanitized = false) {
 			$html = '';
 
 			foreach ($Options as $k => $v) {
-				$o_v  = html_encode($v);
+				if (empty($pre_sanitized)) {
+					$o_v  = html_encode($v);
+				}
+				else {
+					$o_v = $v;
+				}
 				$o_k  = ImpHTML::makeSafeCSSName("$name $k");
 				$html .= '<input type="checkbox" id="' . $o_k .'" name="' . html_encode($name) . '[' . html_encode($k) . ']" ' . (!empty($selected_values[$k]) ? " checked" : "") . '><label for="' . $o_k .'">' . $o_v . '</label><br/>';
 			}
