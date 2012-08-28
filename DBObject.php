@@ -309,6 +309,9 @@
 								break;
 
 							case 'integer':
+								$this->$name = ($value === null) ? null : (integer)$value;
+								break;
+
 							case 'date':
 							case 'datetime':
 							case 'timestamp':
@@ -533,8 +536,8 @@
 							}
 							break;
 
-						case 'boolean':
-							// Convert from boolean true/false to 1/0 for a BIT column
+						case 'boolean': // Convert from boolean true/false to 1/0 for a BIT column
+						case 'integer': // Allow null values for integer columns (must be supported in DB schema)
 							$Q->addValue($P, ($this->$P === null) ? null : (int) $this->$P );
 							break;
 
@@ -548,10 +551,6 @@
 
 						case 'enum':
 							$Q->addValue($P, $this->$P, 'enum');
-							break;
-
-						case 'integer':
-							$Q->addValue($P, (integer)$this->$P);
 							break;
 
 						case 'currency':
