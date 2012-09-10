@@ -236,13 +236,24 @@
 				return (in_iarray($value, array('yes', 'true')) == true);
 		}
     
-		public static function generateSelectFromArray(array $the_array, $select_name, $selected_value = false, $use_value_as_key = false) {
+		public static function generateSelectFromArray(array $the_array, $select_name, $selected_value = false, $use_value_as_key = false, $select_id = false, $require_selection = false) {
 			/*
 			 * returns a string containing an HTML SELECT seeded with the contents of $the_array.
 			 * Any key matching $selected_value will be SELECTED
 			 */
 
-			$html = '<select name="' . html_encode($select_name) . '"><option value="">Select...</option>';
+			 if (empty($select_id)) {
+				 $select_id = $select_name;
+			 }
+
+			 $html = '<select id="' . html_encode($select_id) . '" name="' . html_encode($select_name) . '">';
+
+			 if (!empty($require_selection)) {
+				assert(count($the_array));
+			 }
+			 else {
+				$html .= '<option value="">Select...</option>';
+			 }
 
 			foreach ($the_array as $ID => $Value) {
 				if ($use_value_as_key) $ID = $Value;
