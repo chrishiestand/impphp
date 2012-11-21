@@ -159,6 +159,7 @@
 								case 'string':
 								case 'text':
 								case 'enum':
+								case 'binary':
 									$this->$Name = '';
 									break;
 
@@ -311,6 +312,15 @@
 							case 'integer':
 								$this->$name = ($value === null) ? null : (integer)$value;
 								break;
+
+							case 'binary':
+							if ($value === null) {
+								$this->$name = null;
+							}
+							else {
+								$this->$name = bin2hex($value);
+							}
+							break;
 
 							case 'date':
 							case 'datetime':
@@ -555,6 +565,15 @@
 
 						case 'currency':
 							$Q->addValue($P, (double)$this->$P);
+							break;
+
+							case 'binary':
+								if (function_exists('hex2bin')) { //In php >= 5.4
+									$Q->addValue($P, hex2bin($this->$P));
+								}
+								else {
+									$Q->addValue($P, pack("H*" , $this->$P));
+								}
 							break;
 
 						default:
