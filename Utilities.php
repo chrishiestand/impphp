@@ -175,7 +175,7 @@
 
 	function generate_debug_source_link($file, $line, $text = false) {
 		if ($_SERVER["REMOTE_ADDR"] == "127.0.0.1") {
-			echo '<a href="txmt://open?url=file://', rawurlencode($file) , '&line=', $line,'">';
+			echo "<a href=\"txmt://open/?url=file://$file&line=$line\">";
 			echo '<code><span title="' . html_encode($file) . '">', basename($file), '</span>:', $line;
 			if (!empty($text)) {
 				echo ': ', $text;
