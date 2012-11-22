@@ -460,39 +460,6 @@
 		return implode($ElementSeparator, $ret);
 	}
 
-	if (!function_exists('json_encode')) {
-		function json_encode($Data) {
-			switch (gettype($Data)) {
-				case 'NULL':
-					return 'null';
-
-				case 'boolean':
-					return $Data ? 'true' : 'false';
-
-				case 'integer':
-					return (int) $Data;
-
-				case 'double':
-				case 'float':
-					return (float) $Data;
-
-				case 'string':
-					return '"' . $Data . '"';
-
-				case 'array':
-					// Associative and sparse arrays have to be handled with objects as the JS array type doesn't support this:
-					if (!empty($Data) && (array_keys($Data) !== range(0, sizeof($Data) - 1))) {
-						return '{' . join(',', array_map(create_function('$n,$v', 'return "\"$n\":" . json_encode($v);'), array_keys($Data), array_values($Data))) . '}';
-					} else {
-						return '[' . join(',', array_map('json_encode', $Data)) . ']';
-					}
-
-				default:
-					die(__FUNCTION__ . " can't encode " . gettype($Data) . " data");
-			}
-		}
-	}
-
 	function html_encode($var) {
 		// See http://www.nicknettleton.com/zine/php/php-utf-8-cheatsheet
 		return htmlentities($var, ENT_QUOTES, ini_get('default_charset'));
