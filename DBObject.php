@@ -903,7 +903,15 @@
               }
               print ImpHTML::generateSelectFromArray(array('Yes', 'No'), $f, $SubmittedValue, true);
               break;
-              
+
+            case ('date'):
+              if (empty($this->Properties[$f]['choices'])) {
+                trigger_error(get_class($this) . ", $f choices have not been set. You should set the choices earlier in the stack of fully flesh out this method.", E_USER_NOTICE);
+                break;
+              }
+              print ImpHTML::generateSelectFromArray($this->Properties[$f]['choices'], $f, ($SubmittedValue === 0 ? false: $SubmittedValue));
+              break;
+
             case ('object'):
             case ('collection'):
               $method = 'generate' . $f . 'FormField';
