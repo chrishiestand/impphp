@@ -96,6 +96,17 @@
 			return implode("&", $res);
 		}
 
+		public static function modifyGet($A) {
+			assert(is_array($A));
+			return http_build_query(array_merge($_GET, $A));
+		}
+
+		public static function hrefToSelf($Text, $GetParameters, $Attributes = '') {
+			assert(is_string($Text));
+			assert(is_string($GetParameters));
+			return "<a href=\"" . html_encode($_SERVER['SCRIPT_NAME'] . '?' . $GetParameters) . "\" $Attributes>" . html_encode($Text) . "</a>";
+		}
+
 		public static function generateSelectFromQuery(ImpDB $DB, $query, $select_name, $selected_value = false, $multiple = false) {
 			/*
 			 * returns a string containing an HTML SELECT seeded with the results of $query.
