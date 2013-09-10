@@ -278,6 +278,22 @@
 			return $html;
 		}
 
+		public static function generateRadios(array $the_array, $check_name, $checked_value = false) {
+			/*
+			 * returns a string containing an html input seeded with the contents of $the_array.
+			 * Any key matching $checked_value will be checked
+			 */
+			$html = '';
+			foreach ($the_array as $key => $value) {
+				$checked = ($checked_value === $value	 ? 'checked="checked"' : '' );
+				$key = html_encode($key);
+				$value = html_encode($value);
+				$html .= "<input type=\"radio\" class=\"imp-radio\" id=\"imp-radio-$check_name-$key\" name=\"$check_name\" $checked value=\"$value\"><label for=\"imp-radio-$check_name-$key\">$value</label><br />";
+			}
+
+			return $html;
+		}
+
 		public static function generateDateSelect($name, $current_value = false) {
 			return ImpHTML::generateSelectFromTime($name, $current_value, true);
 		}
