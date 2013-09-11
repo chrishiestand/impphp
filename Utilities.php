@@ -191,7 +191,7 @@
 		if (is_object($mixed)) {
 			return get_class($mixed) . " Object";
 		} else {
-			return var_export($mixed, true);
+			return print_r($mixed, true);
 		}
 	}
 
