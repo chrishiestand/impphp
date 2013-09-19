@@ -213,8 +213,11 @@
 			return $html;
 		}
 
-		public static function generateCheckboxesForArray($name, $Options, array $selected_values = array(), $pre_sanitized = false) {
+		public static function generateCheckboxesForArray($name, $Options, array $selected_values = array(), $pre_sanitized = false, $data = false) {
 			$html = '';
+
+		 //We assume data is used for ajax objects so we add that class.
+		 $class = (!empty($data) ? 'imp-checkbox imp-ajax-checkbox' : 'imp-checkbox');
 
 			foreach ($Options as $k => $v) {
 				if (empty($pre_sanitized)) {
@@ -224,7 +227,7 @@
 					$o_v = $v;
 				}
 				$o_k  = ImpHTML::makeSafeCSSName("$name $k");
-				$html .= '<input type="checkbox" id="' . $o_k .'" name="' . html_encode($name) . '[' . html_encode($k) . ']" ' . (!empty($selected_values[$k]) ? " checked" : "") . '><label for="' . $o_k .'">' . $o_v . '</label><br/>';
+				$html .= '<input type="checkbox" id="imp-checkbox-' . $o_k .'" '.(!empty($data) ? $data : '') .' class="'.$class.'" name="' . html_encode($name) . '[' . html_encode($k) . ']" ' . (!empty($selected_values[$k]) ? " checked" : "") . '><label for="imp-checkbox-' . $o_k .'">' . $o_v . '</label><br/>';
 			}
 
 			return $html;
