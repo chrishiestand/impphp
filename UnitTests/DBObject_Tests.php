@@ -40,7 +40,7 @@
 		function testCreateObject() {
 			$this->getDB();
 			$t = DBTest::get();
-			$this->assertType('object', $t);
+			$this->assertInternalType('object', $t);
 			$this->assertObjectHasAttribute('ID', $t);
 			$this->assertObjectHasAttribute('DBTable', $t);
 			$this->assertObjectHasAttribute('Properties', $t);
@@ -88,7 +88,7 @@
 		function testLoadObject() {
 			$this->getDB();
 			$first = DBTest::get($GLOBALS['FirstObjectID']);
-			$this->assertType('object', $first);
+			$this->assertInternalType('object', $first);
 			$this->assertEquals($first->ID, $GLOBALS['FirstObjectID']);
 
 			// These have not been set:
@@ -113,7 +113,7 @@
 
 			$child = DBTest::get();
 			$child->Parent = $GLOBALS['FirstObjectID']; // The integer ID should automatically be converted to a new DBTest object by DBObject::__set()
-			$this->assertType('object', $child->Parent);
+			$this->assertInternalType('object', $child->Parent);
 			$this->assertSame($child->Parent, $first);
 		}
 
@@ -186,7 +186,7 @@
 			}
 
 			$foo = $child->Parent;
-			$this->assertType('object', $foo);
+			$this->assertInternalType('object', $foo);
 			$this->assertEquals($foo->ID, $GLOBALS['FirstObjectID']);
 
 			$found = false;
@@ -237,7 +237,7 @@
 			$first->save();
 
 			$changes = $first->getChanges();
-			$this->assertType('array', $changes);
+			$this->assertInternalType('array', $changes);
 			foreach ($changes as $c) {
 				$this->assertEquals($c['Admin'], DBOBject::$AuthUser);
 				$this->assertTrue(time() - $c['Time'] < 5);
@@ -284,12 +284,12 @@
 
 			$objects = DBTest::get($requestedIDs);
 
-			$this->assertType('array', $objects);
+			$this->assertInternalType('array', $objects);
 			$this->assertEquals(count($objects), count($requestedIDs));
 
 			$foundIDs = array();
 			foreach ($objects as $o) {
-				$this->assertType('object', $o);
+				$this->assertInternalType('object', $o);
 				$foundIDs[] = $o->ID;
 			}
 			sort($foundIDs);

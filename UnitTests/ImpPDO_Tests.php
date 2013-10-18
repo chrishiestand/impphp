@@ -79,7 +79,7 @@
 
 		function testGetPerformanceCounters() {
 			$this->getDB();
-			$this->assertType('array', $this->db->getPerformanceCounters());
+			$this->assertInternalType('array', $this->db->getPerformanceCounters());
 		}
 		function testGetUniqueIdentifier() {
 			$this->getDB();
