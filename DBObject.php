@@ -646,7 +646,7 @@
 			}
 
 			public function getFormFieldsOfType($type) {
-				return array_keys(array_filter($this->Properties, create_function('$a', 'return ($a[\'type\'] == \'' . $type . '\');')));
+				return array_keys(array_filter(array_filter($this->Properties, array($this, 'filterFormFields')), create_function('$a', 'return ($a[\'type\'] == \'' . $type . '\');')));
 			}
 
 			public function getFormFields() {
