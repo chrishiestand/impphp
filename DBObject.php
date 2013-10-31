@@ -646,7 +646,8 @@
 			}
 
 			public function getFormFieldsOfType($type) {
-				return array_keys(array_filter(array_filter($this->Properties, array($this, 'filterFormFields')), create_function('$a', 'return ($a[\'type\'] == \'' . $type . '\');')));
+				$copy = $this; //not needed after php5.4
+				return array_filter($copy->getFormFields(), function($f) use($copy, $type) {return !empty($copy->Properties[$f]['type']) and ($copy->Properties[$f]['type'] == $type); } );
 			}
 
 			public function getFormFields() {
