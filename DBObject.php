@@ -666,6 +666,11 @@
 				return array_keys(array_filter($this->Properties, array($this, 'filterRequiredAdminFormFields')));
 			}
 
+			public function getAdminFormFieldsOfType($type) {
+				$copy = $this; //not needed after php5.4
+				return array_filter($copy->getAdminFormFields(), function($f) use($copy, $type) {return !empty($copy->Properties[$f]['type']) and ($copy->Properties[$f]['type'] == $type); } );
+			}
+
 			public function getAllFormFields() {
 				return array_keys(array_merge(array_filter($this->Properties, array($this, 'filterFormFields')), array_filter($this->Properties, array($this, 'filterAdminFormFields')) ));
 			}
