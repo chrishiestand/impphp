@@ -61,8 +61,14 @@
 					break;
 
 				case 301:
-					$this->_valid = true;
-					$this->Message = "The webserver for {$this->originalURL} informs us that it has been replaced by {$this->effectiveURL}";
+					if (empty($this->effectiveURL)) {		//In case of malformed response (has been seen in the wild)
+						$this->_valid = false;
+						$this->Message = "The webserver for {$this->originalURL} informs us that it has been moved, but the new url was not sent. This is likely due to a remote server error.";
+					}
+					else {
+						$this->_valid = true;
+						$this->Message = "The webserver for {$this->originalURL} informs us that it has been replaced by {$this->effectiveURL}";
+					}
 					break;
 
 				default:
