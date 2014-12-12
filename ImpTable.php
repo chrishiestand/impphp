@@ -49,7 +49,7 @@
 
 		function AutoSort($Key = false, $Order = false) {
 			assert(is_array($this->Data));
-			if (empty($this->Data)) return;
+			if (!count($this->Data)) return;
 
 			if (!empty($this->_autoSorted)) return;
 			$this->_autoSorted = true;
@@ -154,7 +154,7 @@
 		private function generateInternalDataSource() {
 			assert(is_array($this->Data));
 			if (empty($this->Data)) {
-				return;
+				$this->Data = array(array('No data' => 'No data found'));
 			}
 
 			reset($this->Data);
